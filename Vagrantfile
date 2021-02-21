@@ -11,6 +11,11 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
     echo "Global Provisioning goes here..."
+    # https://wiki.alpinelinux.org/wiki/Docker
+    apk add docker
+    addgroup vagrant docker
+    rc-update add docker boot
+    service docker start
   SHELL
 
   config.vm.define "master0" do |master0|
