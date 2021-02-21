@@ -18,7 +18,8 @@ Vagrant.configure("2") do |config|
   # end
 
   config.vm.provision "shell", inline: <<-SHELL
-    echo "Global Provisioning goes here..."
+    # echo "Global Provisioning goes here..."
+    apk update && apk upgrade
     # https://wiki.alpinelinux.org/wiki/Docker
     apk add docker
     addgroup vagrant docker
@@ -31,7 +32,7 @@ Vagrant.configure("2") do |config|
       node.vm.box = "generic/alpine312"
       node.vm.network "public_network", bridge: g_bridge, type: :dhcp, auto_config: true
       node.vm.provision "shell", inline: <<-SHELL
-        echo "somemaster.localdomain" > /etc/hostname
+        echo "#{machine}" > /etc/hostname
       SHELL
 
       node.vm.provider "virtualbox" do |vb|
@@ -46,7 +47,7 @@ Vagrant.configure("2") do |config|
       node.vm.box = "generic/alpine312"
       node.vm.network "public_network", bridge: g_bridge, type: :dhcp, auto_config: true
       node.vm.provision "shell", inline: <<-SHELL
-        echo "someslave.localdomain" > /etc/hostname
+        echo "#{machine}" > /etc/hostname
       SHELL
 
       node.vm.provider "virtualbox" do |vb|
