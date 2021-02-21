@@ -2,20 +2,59 @@
 # vi: set ft=ruby :
 
 g_bridge = "Intel(R) I211 Gigabit Network Connection"
-g_gui = false # true: display the VirtualBox GUI when booting the machine
-g_mem_master = "1024"
-g_mem_slave = "512"
-masters = ["master0", "master1"]
-slaves = ["slave0", "slave1", "slave2"]
+
+servers = [
+  {
+    :type => "master",
+    :hostname => "master0",
+    :ip => "192.168.76.150",
+    :box => "generic/alpine312",
+    :ram => 1024,
+    :cpus => 4,
+    :gui => false
+  },
+  {
+    :type => "master",
+    :hostname => "master1",
+    :ip => "192.168.76.151",
+    :box => "generic/alpine312",
+    :ram => 1024,
+    :cpus => 4,
+    :gui => false
+  },
+  {
+    :type => "slave",
+    :hostname => "slave0",
+    :ip => "192.168.76.160",
+    :box => "generic/alpine312",
+    :ram => 512,
+    :cpus => 2,
+    :gui => false
+  },
+  {
+    :type => "slave",
+    :hostname => "slave1",
+    :ip => "192.168.76.161",
+    :box => "generic/alpine312",
+    :ram => 512,
+    :cpus => 2,
+    :gui => false
+  },
+  {
+    :type => "slave",
+    :hostname => "slave2",
+    :ip => "192.168.76.162",
+    :box => "generic/alpine312",
+    :ram => 512,
+    :cpus => 2,
+    :gui => false
+  }
+]
 
 Vagrant.configure("2") do |config|
+  # A common shared folder
+  # XXX todo: all a per-machine shared folder too
   config.vm.synced_folder "./data", "/vagrant_data"
-
-  # This is now in every machine
-  # config.vm.provider "virtualbox" do |vb|
-  #   vb.gui = g_gui # Display the VirtualBox GUI when booting the machine
-  #   vb.memory = g_mem_{master|slave}
-  # end
 
   config.vm.provision "shell", inline: <<-SHELL
     # echo "Global Provisioning goes here..."
@@ -30,32 +69,18 @@ Vagrant.configure("2") do |config|
     apk add consul vault nomad terraform --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
   SHELL
 
-  masters.each do |machine|
-    config.vm.define machine do |node|
-      node.vm.box = "generic/alpine312"
-      node.vm.network "public_network", bridge: g_bridge, type: :dhcp, auto_config: true
+  servers.each do |machine|
+    config.vm.define machine[:hostname] do |node|
+      node.vm.box = machine[:box]
+      node.vm.network "public_network", bridge: g_bridge, ip: machine[:ip], auto_config: true
       node.vm.provision "shell", inline: <<-SHELL
-        echo "#{machine}" > /etc/hostname
+        echo "#{machine[:hostname]}" > /etc/hostname
       SHELL
 
       node.vm.provider "virtualbox" do |vb|
-        vb.gui = g_gui
-        vb.memory = g_mem_master
-      end
-    end
-  end
-
-  slaves.each do |machine|
-    config.vm.define machine do |node|
-      node.vm.box = "generic/alpine312"
-      node.vm.network "public_network", bridge: g_bridge, type: :dhcp, auto_config: true
-      node.vm.provision "shell", inline: <<-SHELL
-        echo "#{machine}" > /etc/hostname
-      SHELL
-
-      node.vm.provider "virtualbox" do |vb|
-        vb.gui = g_gui
-        vb.memory = g_mem_slave
+        vb.gui = machine[:gui]
+        vb.memory = machine[:ram]
+        vb.cpus = machine[:cpus]
       end
     end
   end
