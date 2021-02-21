@@ -20,11 +20,14 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     # echo "Global Provisioning goes here..."
     apk update && apk upgrade
+    apk upgrade virtulbox-guest-additions --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
     # https://wiki.alpinelinux.org/wiki/Docker
     apk add docker
     addgroup vagrant docker
     rc-update add docker boot
     service docker start
+    # https://stackoverflow.com/questions/63080980/how-to-install-terraform-0-12-in-an-alpine-container-with-apk
+    apk add consul vault nomad terraform --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
   SHELL
 
   masters.each do |machine|
