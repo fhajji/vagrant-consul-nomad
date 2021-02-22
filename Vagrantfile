@@ -11,7 +11,9 @@ servers = [
     :box => "generic/alpine312",
     :ram => 1024,
     :cpus => 4,
-    :gui => false
+    :gui => false,
+    :shared_folder_local => "./data/master0",
+    :shared_folder_remote => "/etc/nomad.d"
   },
   {
     :type => "master",
@@ -20,7 +22,9 @@ servers = [
     :box => "generic/alpine312",
     :ram => 1024,
     :cpus => 4,
-    :gui => false
+    :gui => false,
+    :shared_folder_local => "./data/master1",
+    :shared_folder_remote => "/etc/nomad.d"
   },
   {
     :type => "master",
@@ -29,7 +33,9 @@ servers = [
     :box => "generic/alpine312",
     :ram => 1024,
     :cpus => 4,
-    :gui => false
+    :gui => false,
+    :shared_folder_local => "./data/master2",
+    :shared_folder_remote => "/etc/nomad.d"
   },
   {
     :type => "slave",
@@ -38,7 +44,9 @@ servers = [
     :box => "generic/alpine312",
     :ram => 512,
     :cpus => 2,
-    :gui => false
+    :gui => false,
+    :shared_folder_local => "./data/slave0",
+    :shared_folder_remote => "/etc/nomad.d"
   },
   {
     :type => "slave",
@@ -47,7 +55,9 @@ servers = [
     :box => "generic/alpine312",
     :ram => 512,
     :cpus => 2,
-    :gui => false
+    :gui => false,
+    :shared_folder_local => "./data/slave1",
+    :shared_folder_remote => "/etc/nomad.d"
   },
   {
     :type => "slave",
@@ -56,7 +66,9 @@ servers = [
     :box => "generic/alpine312",
     :ram => 512,
     :cpus => 2,
-    :gui => false
+    :gui => false,
+    :shared_folder_local => "./data/slave2",
+    :shared_folder_remote => "/etc/nomad.d"
   }
 ]
 
@@ -85,6 +97,8 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", inline: <<-SHELL
         echo "#{machine[:hostname]}" > /etc/hostname
       SHELL
+      
+      node.vm.synced_folder machine[:shared_folder_local], machine[:shared_folder_remote]
 
       node.vm.provider "virtualbox" do |vb|
         vb.gui = machine[:gui]
