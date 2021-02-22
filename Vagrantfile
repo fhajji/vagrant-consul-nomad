@@ -13,7 +13,12 @@ servers = [
     :cpus => 4,
     :gui => false,
     :shared_folder_local => "./data/master0",
-    :shared_folder_remote => "/etc/nomad.d"
+    :shared_folder_remote => "/etc/hashicorp.d",
+    :provision => <<-SHELL
+    apk add nginx
+    mkdir /run/nginx
+    chown vagrant:vagrant /run/nginx
+    SHELL
   },
   {
     :type => "master",
@@ -24,7 +29,8 @@ servers = [
     :cpus => 4,
     :gui => false,
     :shared_folder_local => "./data/master1",
-    :shared_folder_remote => "/etc/nomad.d"
+    :shared_folder_remote => "/etc/hashicorp.d",
+    :provision => ""
   },
   {
     :type => "master",
@@ -35,7 +41,8 @@ servers = [
     :cpus => 4,
     :gui => false,
     :shared_folder_local => "./data/master2",
-    :shared_folder_remote => "/etc/nomad.d"
+    :shared_folder_remote => "/etc/hashicorp.d",
+    :provision => ""
   },
   {
     :type => "slave",
@@ -46,7 +53,8 @@ servers = [
     :cpus => 2,
     :gui => false,
     :shared_folder_local => "./data/slave0",
-    :shared_folder_remote => "/etc/nomad.d"
+    :shared_folder_remote => "/etc/hashicorp.d",
+    :provision => "",
   },
   {
     :type => "slave",
@@ -57,7 +65,8 @@ servers = [
     :cpus => 2,
     :gui => false,
     :shared_folder_local => "./data/slave1",
-    :shared_folder_remote => "/etc/nomad.d"
+    :shared_folder_remote => "/etc/hashicorp.d",
+    :provision => ""
   },
   {
     :type => "slave",
@@ -68,14 +77,15 @@ servers = [
     :cpus => 2,
     :gui => false,
     :shared_folder_local => "./data/slave2",
-    :shared_folder_remote => "/etc/nomad.d"
+    :shared_folder_remote => "/etc/hashicorp.d",
+    :provision => ""
   }
 ]
 
 Vagrant.configure("2") do |config|
   # A common shared folder
   # XXX todo: all a per-machine shared folder too
-  config.vm.synced_folder "./data", "/vagrant_data"
+  config.vm.synced_folder "./data/common", "/vagrant_data"
 
   config.vm.provision "shell", inline: <<-SHELL
     # echo "Global Provisioning goes here..."
@@ -88,6 +98,8 @@ Vagrant.configure("2") do |config|
     service docker start
     # https://stackoverflow.com/questions/63080980/how-to-install-terraform-0-12-in-an-alpine-container-with-apk
     apk add consul vault nomad terraform --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
+    addgroup vagrant consul
+    chown --recursive vagrant:vagrant /var/consul
   SHELL
 
   servers.each do |machine|
@@ -96,6 +108,7 @@ Vagrant.configure("2") do |config|
       node.vm.network "public_network", bridge: g_bridge, ip: machine[:ip], auto_config: true
       node.vm.provision "shell", inline: <<-SHELL
         echo "#{machine[:hostname]}" > /etc/hostname
+        #{machine[:provision]}
       SHELL
       
       node.vm.synced_folder machine[:shared_folder_local], machine[:shared_folder_remote]

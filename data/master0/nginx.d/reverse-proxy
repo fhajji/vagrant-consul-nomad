@@ -1,0 +1,31 @@
+# Reverse http proxy to access Consul UI from the outside.
+# 
+# When needed, start nginx like this:
+#    $ sudo nginx -c /etc/hashicorp.d/nginx.d/reverse-proxy
+# 
+# This will relay back and forth
+#    http://192.168.76.150/ui/
+# to
+#    http://127.0.0.1:8500/ui/
+# 
+# Note: we also proxy /v1/ URLs, because the UI require them:
+# https://github.com/hashicorp/consul/issues/540#issuecomment-263088247
+
+events { }
+
+http {
+  server {
+    listen 80 default_server;
+    server_name master0;
+    
+    location /ui/ {
+      proxy_pass http://127.0.0.1:8500/ui/;
+      proxy_buffering off;
+    }
+
+    location /v1/ {
+      proxy_pass http://127.0.0.1:8500/v1/;
+      proxy_buffering off;
+    }
+  }
+}
