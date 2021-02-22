@@ -23,6 +23,15 @@ servers = [
     :gui => false
   },
   {
+    :type => "master",
+    :hostname => "master2",
+    :ip => "192.168.76.152",
+    :box => "generic/alpine312",
+    :ram => 1024,
+    :cpus => 4,
+    :gui => false
+  },
+  {
     :type => "slave",
     :hostname => "slave0",
     :ip => "192.168.76.160",
