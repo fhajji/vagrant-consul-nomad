@@ -1,17 +1,26 @@
-# Reverse http proxy to access Consul UI from the outside.
+# Reverse http proxy to access Consul UI and Nomad UI from the outside.
 # 
 # When needed, start nginx like this:
 #    $ sudo mkdir -p /run/nginx
 #    $ sudo chown vagrant:vagrant /run/nginx
 #    $ sudo nginx -c /etc/hashicorp.d/nginx.d/reverse-proxy
 # 
-# This will relay back and forth
+# This will relay back and forth Consol UI
 #    http://192.168.76.150/ui/
 # to
 #    http://127.0.0.1:8500/ui/
+#
+# and Nomad UI
+#    http://192.168.76.150:81/ui/
+# to
+#    http://127.0.0.1:4646/ui/
 # 
 # Note: we also proxy /v1/ URLs, because the UI require them:
-# https://github.com/hashicorp/consul/issues/540#issuecomment-263088247
+#    https://github.com/hashicorp/consul/issues/540#issuecomment-263088247
+# We do this both for Consol UI (needed!) and Nomad UI (needed?).
+#
+# See also:
+#    https://learn.hashicorp.com/tutorials/nomad/reverse-proxy-ui
 
 events { }
 
@@ -22,12 +31,33 @@ http {
     
     location /ui/ {
       proxy_pass http://127.0.0.1:8500/ui/;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_buffering off;
+      proxy_read_timeout 310s;
     }
 
     location /v1/ {
       proxy_pass http://127.0.0.1:8500/v1/;
       proxy_buffering off;
+      proxy_read_timeout 310s;
+    }
+  }
+
+  server {
+    listen 81 default_server;
+    server_name master0;
+
+    location /ui/ {
+      proxy_pass http://127.0.0.1:4646/ui/;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_buffering off;
+      proxy_read_timeout 310s;
+    }
+
+    location /v1/ {
+      proxy_pass http://127.0.0.1:4646/v1/;
+      proxy_buffering off;
+      proxy_read_timeout 310s;
     }
   }
 }
