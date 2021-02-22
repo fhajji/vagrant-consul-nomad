@@ -13,30 +13,30 @@
 #   - get from Consul the Nomad servers
 #   - register this node with those Nomad servers.
 #
-# Note that we will get the first IP address from the
-# list of available network interfaces. This will e.g.
-# be something like, say, 10.0.2.15. If we also have
-# "external" (bridged) IP addresses like, say 192.168.76.162,
-# then we need to advertise them explicitely. If you want
-# to do that, uncomment the advertise {} block.
+# Note that we MUST advertise an external / bridged IP address
+# or an internal IP address using an advertise {} block.
+# Because if we don't, this will get the first IP address from
+# the list of available network interfaces. This will e.g. be
+# something like, say, 10.0.2.15 (the NAT interface created
+# by Vagrant).
+# Alternatively, bind_addr to the address you want; it will
+# be advertised if no advertise{} block is available.
 
 data_dir             = "/var/lib/nomad"
 disable_update_check = true
 enable_syslog        = true
 
-bind_addr = "0.0.0.0"
-
-advertise {
-  # defaults to the first private IP address
-  http = "192.168.76.162"
-  rpc = "192.168.76.162"
-  serf = "192.168.76.162"
-}
+# bind_addr = "192.168.76.162"
+bind_addr = "10.0.0.162"
 
 client {
   enabled = true
+
   # Uncomment next line if not using Consul
   # servers = ["192.168.76.150", "192.168.76.151", "192.168.76.152"]
+
+  # Uncomment next line if not using Consul
+  # servers = ["10.0.0.150", "10.0.0.151", "10.0.0.152"]
 }
 
 # Comment this block out, if not using Consul

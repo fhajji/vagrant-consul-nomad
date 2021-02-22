@@ -8,6 +8,7 @@ servers = [
     :type => "master",
     :hostname => "master0",
     :ip => "192.168.76.150",
+    :ip_internal => "10.0.0.150",
     :box => "generic/alpine312",
     :ram => 1024,
     :cpus => 4,
@@ -25,6 +26,7 @@ servers = [
     :type => "master",
     :hostname => "master1",
     :ip => "192.168.76.151",
+    :ip_internal => "10.0.0.151",
     :box => "generic/alpine312",
     :ram => 1024,
     :cpus => 4,
@@ -37,6 +39,7 @@ servers = [
     :type => "master",
     :hostname => "master2",
     :ip => "192.168.76.152",
+    :ip_internal => "10.0.0.152",
     :box => "generic/alpine312",
     :ram => 1024,
     :cpus => 4,
@@ -49,6 +52,7 @@ servers = [
     :type => "slave",
     :hostname => "slave0",
     :ip => "192.168.76.160",
+    :ip_internal => "10.0.0.160",
     :box => "generic/alpine312",
     :ram => 512,
     :cpus => 2,
@@ -61,6 +65,7 @@ servers = [
     :type => "slave",
     :hostname => "slave1",
     :ip => "192.168.76.161",
+    :ip_internal => "10.0.0.161",
     :box => "generic/alpine312",
     :ram => 512,
     :cpus => 2,
@@ -73,6 +78,7 @@ servers = [
     :type => "slave",
     :hostname => "slave2",
     :ip => "192.168.76.162",
+    :ip_internal => "10.0.0.162",
     :box => "generic/alpine312",
     :ram => 512,
     :cpus => 2,
@@ -107,6 +113,7 @@ Vagrant.configure("2") do |config|
     config.vm.define machine[:hostname] do |node|
       node.vm.box = machine[:box]
       node.vm.network "public_network", bridge: g_bridge, ip: machine[:ip], auto_config: true
+      node.vm.network "private_network", ip: machine[:ip_internal], auto_config: true
       node.vm.provision "shell", inline: <<-SHELL
         echo "#{machine[:hostname]}" > /etc/hostname
         #{machine[:provision]}

@@ -14,24 +14,20 @@
 #   - join this node to those _other_ Nomad servers.
 #
 # Note that we MUST advertise an external / bridged IP address
-# using the advertise {} block below. Because if we don't, this
-# will get the first IP address from the list of available network
-# interfaces. This will e.g. be something like, say, 10.0.2.15.
-# We could have many VMs with this IP address, and this will
-# break the Raft consensus protocol.
+# or an internal IP address using an advertise {} block.
+# Because if we don't, this will get the first IP address from
+# the list of available network interfaces. This will e.g. be
+# something like, say, 10.0.2.15 (the NAT interface created
+# by Vagrant).
+# Alternatively, bind_addr to the address you want; it will
+# be advertised if no advertise{} block is available.
 
 data_dir             = "/var/lib/nomad"
 disable_update_check = true
 enable_syslog        = true
 
-bind_addr = "0.0.0.0"
-
-advertise {
-  # defaults to the first private IP address
-  http = "192.168.76.151"
-  rpc = "192.168.76.151"
-  serf = "192.168.76.151"
-}
+# bind_addr = "192.168.76.151"
+bind_addr = "10.0.0.151"
 
 server {
   enabled          = true
@@ -41,11 +37,12 @@ server {
   # server_join {
   #   retry_join = ["192.168.76.150", "192.168.76.152"]
   # }
-}
 
-# client {
-#   enabled = true
-# }
+  # Uncomment this block if not using Consul
+  # server_join {
+  #   retry_join = ["10.0.0.150", "10.0.0.152"]
+  # }
+}
 
 # Comment this block out, if not using Consul
 consul {
