@@ -16,8 +16,9 @@ servers = [
     :shared_folder_remote => "/etc/hashicorp.d",
     :provision => <<-SHELL
     apk add nginx
-    mkdir /run/nginx
+    mkdir -p /run/nginx
     chown vagrant:vagrant /run/nginx
+    echo "If needed, start nginx with /etc/hashicorp.d/nginx.d/"
     SHELL
   },
   {

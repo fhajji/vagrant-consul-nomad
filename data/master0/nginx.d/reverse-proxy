@@ -1,6 +1,8 @@
 # Reverse http proxy to access Consul UI from the outside.
 # 
 # When needed, start nginx like this:
+#    $ sudo mkdir -p /run/nginx
+#    $ sudo chown vagrant:vagrant /run/nginx
 #    $ sudo nginx -c /etc/hashicorp.d/nginx.d/reverse-proxy
 # 
 # This will relay back and forth

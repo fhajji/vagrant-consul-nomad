@@ -1,3 +1,13 @@
+# Consul agent for slave2
+# 
+# Start with:
+#   $ consul agent -config-dir=/etc/hashicorp.d/consul.d/
+# 
+# The "encrypt" key for the Gossip protocol was
+# generated (only) by master0 with the command:
+#   $ consul keygen > /vagrant_data/consul.keygen
+# and is reused by all other Consul agents (configs).
+
 data_dir = "/var/consul"
 log_level = "INFO"
 node_name = "slave2"
