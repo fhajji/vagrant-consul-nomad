@@ -108,6 +108,7 @@ Vagrant.configure("2") do |config|
     apk add consul vault nomad terraform --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
     addgroup vagrant consul
     chown --recursive vagrant:vagrant /var/consul
+    apk add jq
   SHELL
 
   servers.each do |machine|

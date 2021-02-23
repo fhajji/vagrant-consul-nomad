@@ -464,12 +464,192 @@ If you've changed it above, adjust accordingly.
 
 ## Using Nomad to Schedule Workloads
 
+### Starting a simple container
+
+The file _./data/common/jobs/http-echo-docker.hcl_ contains a simple
+Nomad job specification, which starts a Docker container on a number
+of Nomad slave nodes.
+
+The container _hashicorp/http-echo_ listens on a port that can be
+specified on the command line, and replies to every HTTP client that
+connects to it by sending back a string, that can also be specified
+on the command line.
+
+When running the job `docs` in the file _http-echo-docker.hcl_, Nomad
+places docs.example.count (3) instances of this container on available
+Nomad slave nodes for execution. By modifying this count value in the
+file, Nomad can be instructed to scale up or scale down the deployment
+by either starting more containers or by killing existing ones.
+
+To use this file, invoke _on a Nomad master node_:
+- `nomad job plan http-echo-docker.hcl`
+- `nomad job run -check-index ${IDX-FROM-PREVIOUS-CMD} http-echo-docker.hcl`
+
+We first make a plan:
+
+```bash
+master0:/vagrant_data/jobs$ nomad job plan http-echo-docker.hcl
++/- Job: "docs"
++/- Stop: "true" => "false"
+    Task Group: "example" (3 create)
+      Task: "server"
+
+Scheduler dry-run:
+- All tasks successfully allocated.
+
+Job Modify Index: 720
+To submit the job with version verification run:
+
+nomad job run -check-index 720 http-echo-docker.hcl
+
+When running the job with the check-index flag, the job will only be run if the
+job modify index given matches the server-side version. If the index has
+changed, another user has modified the job and the plan's results are
+potentially invalid.
+```
+
+Noting the index value (720 in this case), we now run the job for real:
+
+```bash
+master0:/vagrant_data/jobs$ nomad job run -check-index 720 http-echo-docker.hcl
+==> Monitoring evaluation "f7623de2"
+    Evaluation triggered by job "docs"
+    Evaluation within deployment: "b15748f4"
+    Allocation "0cc6210a" created: node "913e1e0d", group "example"
+    Allocation "3d9a693d" created: node "eb1ec973", group "example"
+    Allocation "5b62b06e" created: node "5bac665a", group "example"
+    Evaluation status changed: "pending" -> "complete"
+==> Evaluation "f7623de2" finished with status "complete"
+```
+
+This may take a while to complete. To monitor this, you can either use
+the [Nomad UI](#proxy-ing-the-uis-to-the-host) the UIs to the Host) or
+use the command line to get a list of jobs:
+
+```bash
+master0:/vagrant_data/jobs$ nomad job status
+ID    Type     Priority  Status   Submit Date
+docs  service  50        running  2021-02-23T19:17:14Z
+```
+
+Now, we can drill down into the `docs` job. Your output
+will look different, because I've already experimented
+with multiple depolyments. I've kept the output un-edited
+to show a real-world example:
+
+```bash
+master0:/vagrant_data/jobs$ nomad job status docs
+ID            = docs
+Name          = docs
+Submit Date   = 2021-02-23T19:17:14Z
+Type          = service
+Priority      = 50
+Datacenters   = dc1
+Namespace     = default
+Status        = running
+Periodic      = false
+Parameterized = false
+
+Summary
+Task Group  Queued  Starting  Running  Failed  Complete  Lost
+example     0       0         3        10      27        0
+
+Latest Deployment
+ID          = b15748f4
+Status      = successful
+Description = Deployment completed successfully
+
+Deployed
+Task Group  Desired  Placed  Healthy  Unhealthy  Progress Deadline
+example     3        3       3        0          2021-02-23T19:27:37Z
+
+Allocations
+ID        Node ID   Task Group  Version  Desired  Status    Created     Modified
+5b62b06e  5bac665a  example     17       run      running   1m1s ago    41s ago
+0cc6210a  913e1e0d  example     17       run      running   1m1s ago    38s ago
+3d9a693d  eb1ec973  example     17       run      running   1m1s ago    44s ago
+ad78fbcc  5bac665a  example     15       stop     complete  26m20s ago  4m50s ago
+55b1f3e1  eb1ec973  example     15       stop     complete  26m20s ago  4m50s ago
+a1937a5f  913e1e0d  example     15       stop     complete  26m20s ago  4m50s ago
+30ade182  5bac665a  example     13       stop     complete  52m56s ago  45m8s ago
+213bad2b  5bac665a  example     12       stop     failed    1h19m ago   45m8s ago
+966a5074  5bac665a  example     12       stop     failed    1h23m ago   45m8s ago
+42ff18ee  5bac665a  example     12       stop     failed    1h25m ago   45m8s ago
+7d477bbc  5bac665a  example     12       stop     failed    1h26m ago   45m8s ago
+5d8d5ef7  5bac665a  example     12       stop     failed    1h27m ago   45m8s ago
+66a3525f  eb1ec973  example     13       stop     complete  2h23m ago   44m54s ago
+1187d448  913e1e0d  example     13       stop     complete  2h23m ago   45m ago
+b8a6bd0c  5bac665a  example     11       stop     complete  2h23m ago   45m8s ago
+6bdd2d31  5bac665a  example     9        stop     failed    2h24m ago   45m8s ago
+2f83d4ae  eb1ec973  example     8        stop     complete  3h9m ago    44m54s ago
+6720b1f1  913e1e0d  example     8        stop     complete  3h9m ago    45m ago
+```
+
+Your focus should be on the Deployed section: all 3 desired containers are
+placed, and all are healthy (respond to health probes by the local consul
+agent).
+
+We can check that the containers are indeed running on the slave nodes, e.g.
+by ssh-ing onto one such node, and manually checking:
+
+```bash
+slave2:~$ docker ps
+CONTAINER ID   IMAGE                 COMMAND                  CREATED         STATUS         PORTS      NAMES
+475717d0d11c   hashicorp/http-echo   "/http-echo -listen …"   5 minutes ago   Up 5 minutes   5678/tcp   server-3d9a693d-34f2-6552-e7c4-5cfdc9371fee
+
+slave2:~$ docker container inspect server-3d9a693d-34f2-6552-e7c4-5cfdc9371fee | jq
+(... output elided ...)
+```
+
+By examining the container, we learn that it is listening on port 5678 and (local)
+IP address 10.0.2.15, the IP address of the first interface. So let's try it:
+
+```bash
+slave2:~$ curl -X GET http://10.0.2.15:5678/
+hello localhost world
+slave2:~$ curl -X GET http://10.0.2.15:5678/health
+{"status":"ok"}
+```
+
+The first `/` URL is the intended output, the `/health` URL is used as an
+endpoint by the local consul agent to check the health of this container.
+
+We can also manually simulate some failure, e.g. by killing the container
+with `docker container kill server-3d9a693d-34f2-6552-e7c4-5cfdc9371fee`.
+Consul's health service will notice that the container is gone, and Nomad
+will start a new one automatically to keep 3 containers placed and running
+at all times. 
+
+To stop the job, issue the command `nomad job stop` followed by the
+job ID or job name on a Nomad master:
+
+```bash
+master0:/vagrant_data/jobs$ nomad job status
+ID    Type     Priority  Status   Submit Date
+docs  service  50        running  2021-02-23T19:17:14Z
+
+master0:/vagrant_data/jobs$ nomad job stop docs
+==> Monitoring evaluation "0398c76b"
+    Evaluation triggered by job "docs"
+    Evaluation within deployment: "b15748f4"
+    Evaluation status changed: "pending" -> "complete"
+==> Evaluation "0398c76b" finished with status "complete"
+
+master0:/vagrant_data/jobs$ nomad job status
+ID    Type     Priority  Status          Submit Date
+docs  service  50        dead (stopped)  2021-02-23T19:17:14Z
+```
+
+## Nomad and Consul Connect
+
 _... TBD ..._
 
 ## TODO
 
+- Enable Consul Connect (done)
+- [Integrate Consul Connect with Nomad](https://www.nomadproject.io/docs/integrations/consul-connect)
 - Install [Vault](https://www.vaultproject.io/)
-- Configure Consul to use Vault
+- Configure Consul to use Vault and vice-versa
 - Enable ACLs in Consul
 - Configure Nomad to use Vault
 - Enable ACLs in Nomad
