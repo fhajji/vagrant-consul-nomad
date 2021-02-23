@@ -98,6 +98,7 @@ Vagrant.configure("2") do |config|
     # echo "Global Provisioning goes here..."
     apk update && apk upgrade
     apk upgrade virtulbox-guest-additions --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
+    apk add tmux
     # https://wiki.alpinelinux.org/wiki/Docker
     apk add docker
     addgroup vagrant docker

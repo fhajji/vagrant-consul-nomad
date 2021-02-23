@@ -16,10 +16,10 @@ the cloud, e.g. using [Terraform](https://www.terraform.io/), and provision
 these VMs with the necessary daemons such as [Consul](https://www.consul.io/),
 [Vault](https://www.vaultproject.io/),  Nomad, ...
 
-While this works great, not every developer as 24/7/365 internet connectivity,
+While this works great, not every developer has 24/7/365 internet connectivity,
 and running many VMs on the cloud costs money too. Wouldn't it be great to have
 the whole cluster on the developer's machine, so it could be used while on the
-run and off the grid? What if all those VMs were running as guests in VirtualBox
+move and off the grid? What if all those VMs were running as guests in VirtualBox
 on the developer's host machine, whatever that host may be? As long as that
 host is beefy enough (RAM and CPU) to handle the load of 6+ VMs, this is indeed
 a viable alternative to traditional cloud-based Nomad development / deployment.
@@ -186,6 +186,10 @@ or, if only one VM was affected:
 ```bash
 $ vagrant reload master0
 ```
+
+> Important! Always reboot the VMs after initial provisioning, for changes to take effect. In other
+words: after inital `vagrant up` with provisioning (or after a manual `vagrant provision`), always
+do a `vagrant halt`, followed by a `vagrant up`.
 
 ### Starting the VMs
 
@@ -368,7 +372,7 @@ In the following order:
 ssh into that box with `vagrant ssh ${HOSTNAME}` and then call:
 
 ```bash
-$ consul agent -config=/etc/hashicorp.d/consul.d
+$ consul agent -config-dir=/etc/hashicorp.d/consul.d
 ```
 
 This should bootstrap and start the Consul service mesh (currently
