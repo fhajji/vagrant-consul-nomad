@@ -27,7 +27,14 @@ disable_update_check = true
 enable_syslog        = true
 
 # bind_addr = "192.168.76.151"
-bind_addr = "10.0.0.151"
+# bind_addr = "10.0.0.151"
+bind_addr = "0.0.0.0"
+
+advertise {
+  http = "10.0.0.151"
+  rpc = "10.0.0.151"
+  serf = "10.0.0.151"
+}
 
 server {
   enabled          = true
