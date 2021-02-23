@@ -16,6 +16,17 @@ encrypt = "atPcSPKra7MO4J5yfQmoFsojIsnzg9gfPlWe4OrLtLw="
 bind_addr = "192.168.76.152"
 retry_join = ["192.168.76.150", "192.168.76.151"]
 bootstrap = false
+
+# Enable Consul Connect
+# https://www.nomadproject.io/docs/integrations/consul-connect
+ports {
+    grpc = 8502
+}
+
+connect {
+    enabled = true
+}
+
 ui_config {
     enabled = false
 }
