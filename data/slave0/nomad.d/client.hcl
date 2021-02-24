@@ -44,6 +44,11 @@ client {
 
   # Uncomment next line if not using Consul
   # servers = ["10.0.0.150", "10.0.0.151", "10.0.0.152"]
+
+  # https://discuss.hashicorp.com/t/nomad-v0-12-9-and-consul-1-9-0-service-mesh-envoy-1-11-2-is-too-old-and-is-not-supported-by-consul/18338
+  meta {
+    connect.sidecar_image = "envoyproxy/envoy:v1.14.5"
+  }
 }
 
 # Comment this block out, if not using Consul

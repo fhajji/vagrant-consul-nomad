@@ -523,7 +523,7 @@ master0:/vagrant_data/jobs$ nomad job run -check-index 720 http-echo-docker.hcl
 ```
 
 This may take a while to complete. To monitor this, you can either use
-the [Nomad UI](#proxy-ing-the-uis-to-the-host) the UIs to the Host) or
+the [Nomad UI](#proxy-ing-the-uis-to-the-host) or
 use the command line to get a list of jobs:
 
 ```bash
@@ -534,7 +534,7 @@ docs  service  50        running  2021-02-23T19:17:14Z
 
 Now, we can drill down into the `docs` job. Your output
 will look different, because I've already experimented
-with multiple depolyments. I've kept the output un-edited
+with multiple deployments. I've kept the output un-edited
 to show a real-world example:
 
 ```bash

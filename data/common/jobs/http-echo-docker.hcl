@@ -24,11 +24,11 @@ job "docs" {
     count = 3
 
     network {
-      # mode = "bridge"
+      mode = "bridge"
 
       port "http" {
         static = 5678
-        # to     = 5678
+        to     = 5678
       }
     }
 
@@ -42,17 +42,20 @@ job "docs" {
       # or statically configured below.
       port = "http"
 
-      check {
-        type = "http"
-        path = "/health"
-        interval = "10s"
-        timeout = "2s"
-      }
+      # check {
+      #   type = "http"
+      #   path = "/health"
+      #   interval = "10s"
+      #   timeout = "2s"
+      # 
+      #   # https://discuss.hashicorp.com/t/consul-connect-with-health-checks/7591/2
+      #   address_mode = "driver"
+      # }
 
       # This is for Consul Connect
-      # connect {
-      #   sidecar_service {}
-      # }
+      connect {
+        sidecar_service {}
+      }
     }
 
     # A task is an individual unit of work. Here, it is a running
