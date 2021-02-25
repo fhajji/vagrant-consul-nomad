@@ -460,9 +460,15 @@ Then, it is easy to access it from the host: just point your browser to
 - http://192.168.76.150:81/ui/ for the UI of the Nomad agent on `master0`
 
 Here, 192.168.76.150 is the public IP / bridged IP of the `master0` node.
-If you've changed it above, adjust accordingly.
+If you've changed it above, adjust accordingly. Alternatively, try the
+host-only (internal) IPs, if you're accessing the UI _only_ from the host,
+i.e. from where VirtualBox is running:
+- http://10.0.0.150/ui/ for the UI of the Consul agent on `master0`
+- http://10.0.0.150:81/ui/ for the UI of the Nomad agent on `master0`
 
 ## Using Nomad to Schedule Workloads
+
+> Since Consul Connect is enabled, this section needs to be revised. Expect some breakage.
 
 ### Starting a simple container
 
@@ -643,6 +649,18 @@ docs  service  50        dead (stopped)  2021-02-23T19:17:14Z
 ## Nomad and Consul Connect
 
 _... TBD ..._
+
+Currently working on adding Consul Connect Service Mesh (CCSM) to the cluster.
+- CNI plugins installed: done
+- CNI plugins configured: _... tbd ..._
+- Envoy sidecar-proxy manually updated: done
+- Fix the sample jobs to use CCSM: _... work in progress ..._
+
+To read / to watch, understand, and apply here:
+- [Nomad Networking Demystified](https://www.hashicorp.com/resources/nomad-networking-demystified)
+- [Deep Dive: CNI - Bryan Boreham, Weaveworks & Dan Williams, Red Hat](https://www.youtube.com/watch?v=zChkx-AB5Xc)
+- [network Stanza](https://www.nomadproject.io/docs/job-specification/network)
+- [Multi-Interface Networking and CNI Plugins in Nomad 0.12](https://www.hashicorp.com/blog/multi-interface-networking-and-cni-plugins-in-nomad-0-12)
 
 ## TODO
 
