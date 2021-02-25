@@ -42,15 +42,21 @@ job "docs" {
       # or statically configured below.
       port = "http"
 
-      # check {
-      #   type = "http"
-      #   path = "/health"
-      #   interval = "10s"
-      #   timeout = "2s"
-      # 
-      #   # https://discuss.hashicorp.com/t/consul-connect-with-health-checks/7591/2
-      #   address_mode = "driver"
-      # }
+      check {
+         type = "http"
+         path = "/health"
+         interval = "10s"
+         timeout = "2s"
+      
+        # https://discuss.hashicorp.com/t/consul-connect-with-health-checks/7591/2
+        address_mode = "driver"
+      
+        # https://github.com/hashicorp/nomad/issues/7709
+        name = "http-echo-service-health"
+      
+        # https://discuss.hashicorp.com/t/consul-connect-with-health-checks/7591/2
+        # port = "http"
+      }
 
       # This is for Consul Connect
       connect {
