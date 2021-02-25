@@ -96,19 +96,25 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
     # echo "Global Provisioning goes here..."
+    # 0. Set up networking manually, part 1 (auto_config must be false!)
+    echo "auto lo" > /etc/network/interfaces
+    echo "iface lo inet loopback" >> /etc/network/interfaces
+    echo "" >> /etc/network/interfaces
+    # 1. General update
     apk update && apk upgrade
     apk upgrade virtulbox-guest-additions --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
     apk add tmux
-    # https://wiki.alpinelinux.org/wiki/Docker
+    # 2. https://wiki.alpinelinux.org/wiki/Docker
     apk add docker
     addgroup vagrant docker
     rc-update add docker boot
     service docker start
-    # https://stackoverflow.com/questions/63080980/how-to-install-terraform-0-12-in-an-alpine-container-with-apk
+    # 3. https://stackoverflow.com/questions/63080980/how-to-install-terraform-0-12-in-an-alpine-container-with-apk
     apk add consul vault nomad terraform --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
     addgroup vagrant consul
     chown --recursive vagrant:vagrant /var/consul
     apk add jq
+    # 4. Add CNI plugins
     # https://www.nomadproject.io/docs/integrations/consul-connect
     # https://v0-9-0.cni.dev/
     # https://github.com/containernetworking/cni
@@ -124,9 +130,26 @@ Vagrant.configure("2") do |config|
   servers.each do |machine|
     config.vm.define machine[:hostname] do |node|
       node.vm.box = machine[:box]
-      node.vm.network "public_network", bridge: g_bridge, ip: machine[:ip], auto_config: true
-      node.vm.network "private_network", ip: machine[:ip_internal], auto_config: true
+      node.vm.network "public_network", bridge: g_bridge, ip: machine[:ip], type: "static", auto_config: false
+      node.vm.network "private_network", ip: machine[:ip_internal], type: "static", auto_config: false
       node.vm.provision "shell", inline: <<-SHELL
+        # Set up networking manually, part 2:
+        echo "auto eth0" >> /etc/network/interfaces
+        echo "iface eth0 inet dhcp" >> /etc/network/interfaces
+        echo "    hostname #{machine[:hostname]}" >> /etc/network/interfaces
+        echo "" >> /etc/network/interfaces
+        echo "auto eth1" >> /etc/network/interfaces
+        echo "iface eth1 inet static" >> /etc/network/interfaces
+        echo "    address #{machine[:ip]}" >> /etc/network/interfaces
+        echo "    netmask 255.255.255.0" >> /etc/network/interfaces
+        echo "" >> /etc/network/interfaces
+        echo "auto eth2" >> /etc/network/interfaces
+        echo "iface eth2 inet static" >> /etc/network/interfaces
+        echo "    address #{machine[:ip_internal]}" >> /etc/network/interfaces
+        echo "    netmask 255.255.255.0" >> /etc/network/interfaces
+        ifup eth1
+        ifup eth2
+        # Fix hostname
         echo "#{machine[:hostname]}" > /etc/hostname
         #{machine[:provision]}
       SHELL
