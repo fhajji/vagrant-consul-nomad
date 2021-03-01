@@ -27,8 +27,9 @@ job "docs" {
       mode = "bridge"
 
       port "http" {
-        static = 5678
+        # static = 5678
         to     = 5678
+        host_network = "public"
       }
     }
 
@@ -55,13 +56,13 @@ job "docs" {
         name = "http-echo-service-health"
       
         # https://discuss.hashicorp.com/t/consul-connect-with-health-checks/7591/2
-        # port = "http"
+        #  port = "http"
       }
 
       # This is for Consul Connect
-      connect {
-        sidecar_service {}
-      }
+      # connect {
+      #   sidecar_service {}
+      # }
     }
 
     # A task is an individual unit of work. Here, it is a running
