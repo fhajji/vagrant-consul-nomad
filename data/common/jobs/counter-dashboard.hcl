@@ -13,10 +13,11 @@ job "countdash" {
     service {
       name = "count-api"
       port = "9001"
+      address_mode = "driver"
 
-      connect {
-        sidecar_service {}
-      }
+      # connect {
+      #   sidecar_service {}
+      # }
     }
 
     task "web" {
@@ -35,23 +36,25 @@ job "countdash" {
       port "http" {
         static = 9002
         to     = 9002
+        host_network = "public"
       }
     }
 
     service {
       name = "count-dashboard"
       port = "9002"
+      address_mode = "driver"
 
-      connect {
-        sidecar_service {
-          proxy {
-            upstreams {
-              destination_name = "count-api"
-              local_bind_port  = 8080
-            }
-          }
-        }
-      }
+      # connect {
+      #   sidecar_service {
+      #     proxy {
+      #       upstreams {
+      #         destination_name = "count-api"
+      #         local_bind_port  = 8080
+      #       }
+      #     }
+      #   }
+      # }
     }
 
     task "dashboard" {
