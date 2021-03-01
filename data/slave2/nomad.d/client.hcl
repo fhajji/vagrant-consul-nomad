@@ -48,6 +48,7 @@ client {
   # https://discuss.hashicorp.com/t/nomad-v0-12-9-and-consul-1-9-0-service-mesh-envoy-1-11-2-is-too-old-and-is-not-supported-by-consul/18338
   meta {
     connect.sidecar_image = "envoyproxy/envoy:v1.14.5"
+    connect.gateway_image = "envoyproxy/envoy:v1.14.5"
   }
 
   host_network "public" {
@@ -58,7 +59,11 @@ client {
     cidr = "10.0.0.0/24"
   }
 
-  network_interface = "eth2"
+  host_network "default" {
+    cidr = "10.0.0.0/24"
+  }
+
+  network_interface = "eth2" # 10.0.0.X
 }
 
 # Comment this block out, if not using Consul
